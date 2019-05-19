@@ -105,7 +105,7 @@ public class Methods
         List<Integer> SelectionsList = new ArrayList<Integer>();
         List<Integer> CantidadList = new ArrayList<Integer>();
         String ClientName = "", SelectedProduct = "";
-        int y = 0, Depart = 0, Cantidad = 0, x = 0;
+        int y = 0, Depart = 0, Cantidad = 0, x = 0, Index;
         int[] Range = new int[2];
     
         do
@@ -162,16 +162,14 @@ public class Methods
                 {
                     // busqueda de seleccion en lista de productos del departamento
                     System.out.println("Producto Seleccionado: " + SelectedProduct);
-                    for(String z: ProductList)
+                    for(x = Range[0]; x < Range[1]; x++)
                     {
-                        for(x = Range[0]; x < Range[1]; x++)
+                        if(P.Nombre[x].equals(SelectedProduct))
                         {
-                            if(z.equals(SelectedProduct))
-                            {
-                                SelectionsList.add(x);
-                                System.out.println("Indice de Producto: " + x);
-                                break;
-                            }
+                            SelectionsList.add(x);
+                            Index = x;
+                            System.out.println("Indice de Producto: " + x);
+                            break;
                         }
                     }
 
@@ -214,10 +212,6 @@ public class Methods
         //pregunta nombre de cliente
         ClientName = JOptionPane.showInputDialog("Nombre de Cliente: ");
         
-        // // paso de productos seleccionados por el comprador
-        // String[] NombreProducts = new String[SelectionsList.size()];
-        // NombreProducts = SelectionsList.toArray(NombreProducts);
-        
         // paso de unidades a comprar
         int[] Cantidades = new int[CantidadList.size()];
         Cantidades = CantidadList.stream().mapToInt(i->i).toArray();
@@ -226,18 +220,6 @@ public class Methods
         int[] pindex = new int[SelectionsList.size()];
         pindex = SelectionsList.stream().mapToInt(i->i).toArray();
         SelectionsList.clear();
-        // for(x = 0; x < pindex.length; x++)
-        // {
-        //     for(y = 0; y < 37; y++)
-        //     {
-        //         System.out.println("Index " + y + NombreProducts[x] + " Nombre Producto: " + P.Nombre[y]);
-        //         if(NombreProducts[x].equals(P.Nombre[y]))
-        //         {
-        //             pindex[x] = y;
-        //             break;
-        //         }
-        //     }
-        // }
 
         Facturacion(Cantidades, pindex, ClientName);
         return 0;
@@ -368,6 +350,8 @@ public class Methods
                             BajoStock += "Codigo: " + P.Codigo[x] + " ~~ Nombre: " + P.Nombre[x] + " ~~ Cantidad: " + P.Stock[x];
                         }
                     }
+
+                    // imprime productos en stock con menos de 4 unidades
                     if(BajoStock != null)
                     {
                         System.out.println("STOCK BAJO\n-----------------" + BajoStock);
@@ -387,14 +371,14 @@ public class Methods
                         System.out.println("PRODUCTO: \n" + P.Nombre[opc] + " [" + P.Stock[opc] + "]");
                         System.out.print("\nDesea Seguir Agregando Unidades? (YES/NO): ");
                         c = R.ReadStr();
-                        System.out.println("Case 3 Salir Opcion (YES/NO): " + c);
                     }
                     while(c.toLowerCase().equals("yes"));
                     break;
             }
             System.out.print("\nDesea Continuar? (YES/NO): ");
             choi = R.ReadStr();
+            System.out.println("Seleccion : " + choi);
         }
         while(choi.toLowerCase().equals("yes"));
-    }   
+    }
 }
