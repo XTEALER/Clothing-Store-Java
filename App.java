@@ -3,11 +3,11 @@ import javax.swing.*;
 
 public class App 
 {
-    
     public static void main(String[] args) 
-    {
+    {   
+        
         int KeepAlive = 0, SelectedOpt, LoggedIn = 0, ActController = 0;
-        String[] OpUser = {"Opciones", "Ventas", "Inventario", "Cerrar Sesion"};
+        String[] OpUser = {"Terminar Dia", "Ventas", "Inventario", "Cerrar Sesion"};
         
         do 
         {
@@ -45,25 +45,31 @@ public class App
                 }
                 else if(SelectedOpt == 0)
                 {
-
+                    System.out.println("Total de Ventas Durante el Dia: " + Methods.ventaDia);
+                    Methods.stock(0.00, true);
                 }
                 else if(SelectedOpt == 1)
                 {
                     do
                     {
+                        if((Methods.DiasTotales % 8) == 0)
+                        {
+                            Methods.inversiones();
+                        }
                         ActController = Methods.Ventas();
-                    } 
+                    }
                     while(ActController != -1 && ActController != 0 || ActController == -2);
                 }
                 else if(SelectedOpt == 2)
                 {
-
+                    Methods.Inventario();
                 }
             }
 
             // control de ejecucion programa principal
             KeepAlive = JOptionPane.showConfirmDialog(null, "Desea Cerrar El Programa?", "Control de Ejecucion", JOptionPane.YES_NO_OPTION);
         } while(KeepAlive == 1 && KeepAlive != -1);
+        Methods.R.reader.close();
         System.out.println("\nTurning OFF program: " + KeepAlive);
         System.exit(0);
     }
