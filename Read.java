@@ -14,6 +14,7 @@ class Read
             try
             {
                 dNumber = reader.nextDouble();
+                reader.nextLine();
                 break;
             } 
             catch(Exception err)
@@ -36,6 +37,7 @@ class Read
             try
             {
                 fNumber = reader.nextFloat();
+                reader.nextLine();
                 break;
             } 
             catch(Exception err)
@@ -56,6 +58,7 @@ class Read
             try
             {
                 iNumber = reader.nextInt();
+                reader.nextLine();
                 break;
             } 
             catch(Exception err)

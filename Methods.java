@@ -10,7 +10,7 @@ public class Methods
     static Read R = new Read();
     static Productos P = new Productos();
     static DecimalFormat fr = new DecimalFormat("#.##");
-    static double ventaDia = 0, ventaSemana = 0, ventaMes = 0, VentasTotales;
+    static double ventaDia = 0, ventaSemana = 0, ventaMes = 0, VentasTotales = 0.00, inversion = 0.00, ganancias = 0.00;
     static int x = 0, Cant = 0, Dias = 0, DiasTotales = 0;
     static String cliente, desc, art, ArgID, ArgPass;
     //static int[] Pindex = new int[] {0,7,8,14,15,21,22,30,31,37};
@@ -100,14 +100,13 @@ public class Methods
 
     static public int Ventas()
     {
-        String[] options = {"DAMAS", "CABALLEROS", "NIÑOS", "NIÑAS", "BABIES", "PAGAR"};
+        String[] options = {"DAMAS", "CABALLEROS", "NIÑOS", "NIÑAS", "BABIES", "PAGAR", "VOLVER"};
         List<String> ProductList = new ArrayList<String>();
         List<Integer> SelectionsList = new ArrayList<Integer>();
         List<Integer> CantidadList = new ArrayList<Integer>();
         String ClientName = "", SelectedProduct = "";
-        int y = 0, Depart = 0, Cantidad = 0, x = 0, Index;
-        int[] Range = new int[2];
-    
+        int y = 0, Depart = 0, Cantidad = 0, x = 0;
+        int[] Range = new int[2];    
         do
         {
             Depart = JOptionPane.showOptionDialog(null, "Elija Un Departamento", "EL COSTOSO STORE",
@@ -140,97 +139,118 @@ public class Methods
                     System.out.println("Exiting Ventas...");
                     return -1;
             }
+            
+            if(Depart == 5)
+            {
+                // terminar compra
+                System.out.println("Saliendo De Seccion: Departamentos");
+
+                //pregunta nombre de cliente
+                ClientName = JOptionPane.showInputDialog("Nombre de Cliente: ");
                 
-            if(Depart != 5)
+                // paso de unidades a comprar
+                int[] Cantidades = new int[CantidadList.size()];
+                Cantidades = CantidadList.stream().mapToInt(i->i).toArray();
+                CantidadList.clear();
+                
+                // paso de indices de productos
+                int[] pindex = new int[SelectionsList.size()];
+                pindex = SelectionsList.stream().mapToInt(i->i).toArray();
+                SelectionsList.clear();
+        
+                Facturacion(Cantidades, pindex, ClientName);
+                return 1;
+            }
+            else if(Depart == 6)
+            {
+                // ends program
+                return 0;
+            }
+            else
             {
                 // add selections to list
                 for(y = Range[0]; y < Range[1]; y++)
                 {
-                    ProductList.add(P.Nombre[y]);
+                    // only if there are available units in the stock and hasnt been selected
+                    if(P.Stock[y] > 0 && !SelectionsList.contains(y))
+                    {
+                        ProductList.add(P.Nombre[y]);
+                    }
                 }
-                
+
+                // say deparment has no products available
+                if(ProductList.size() == 0)
+                {
+                    JOptionPane.showMessageDialog(null, "SELECIONE OTRO DEPARTAMENTO...", "PRODUCTOS NO DISPONIBLES", JOptionPane.ERROR_MESSAGE);
+                    continue;
+                }
+
                 // paso de productos del departamento
                 String[] Choices = new String[ProductList.size()];
                 Choices = ProductList.toArray(Choices);
+                ProductList.clear();
 
                 // seleccion de producto
-                SelectedProduct = (String) JOptionPane.showInputDialog(null, "Escoja Un Producto:",
-                "Departamento de " + options[Depart], JOptionPane.QUESTION_MESSAGE, null,                                                                     
+                SelectedProduct = (String) JOptionPane.showInputDialog(null, "PRODUCTOS:",
+                options[Depart], JOptionPane.QUESTION_MESSAGE, null,                                                                  
                 Choices, // Array of choices
-                null); // Initial choice
+                Choices[0]); // Initial choice
+                
+                // si el producto no es nulo, es agregado al "carrito"
                 if(SelectedProduct != null)
                 {
-                    // busqueda de seleccion en lista de productos del departamento
-                    System.out.println("Producto Seleccionado: " + SelectedProduct);
                     for(x = Range[0]; x < Range[1]; x++)
                     {
                         if(P.Nombre[x].equals(SelectedProduct))
                         {
                             SelectionsList.add(x);
-                            Index = x;
-                            System.out.println("Indice de Producto: " + x);
                             break;
                         }
                     }
-
-                    do
-                    {
-                        try
-                        {
-                            Cantidad = Integer.parseInt(JOptionPane.showInputDialog("UNIDADES A COMPRAR").toString());
-                            System.out.println("Indice de P(x): " + x + "  Cantidades Disponibles: " + P.Stock[x]);
-                            if(Cantidad > P.Stock[x])
-                            {
-                                JOptionPane.showMessageDialog(null, "NO SE TIENE LA CANTIDAD DE PRODUCTO SOLICITADA (" + Cantidad + ")\n UNIDADES DISPONIBLES (" + P.Stock[x] + ")", "ERROR DE STOCK", JOptionPane.INFORMATION_MESSAGE);
-                            } 
-                            else 
-                            {
-                                System.out.println("Unidades Disponibles");
-                                break;
-                            }
-                        }
-                        catch(Exception err)
-                        {
-                            JOptionPane.showMessageDialog(null, "NO SE PUDO LEER EL DATO INGRESADO\n\n\nINTENTE DE NUEVO...", "ERROR DE ENTRADA/SALIDA", JOptionPane.INFORMATION_MESSAGE);
-                        }
-                    } 
-                    while(true);
-                    CantidadList.add(Cantidad);
-
-                    System.out.println("Producto Selecionado: " + SelectedProduct + " (" + Cantidad + ")");
+                }
+                else
+                {
+                    // si el producto es nulo se vuelve a preguntar un departamento
+                    System.out.println("Producto No Valido (null)");
+                    continue;
                 }
 
-                ProductList.clear();
-            }
-            else
-            {
-                System.out.println("Saliendo De Seccion: Departamentos");
-                break;
-            }
-        } while(true);
+                // busqueda de seleccion en lista de productos del departamento
+                System.out.println("Producto Seleccionado: " + SelectedProduct);
 
-        //pregunta nombre de cliente
-        ClientName = JOptionPane.showInputDialog("Nombre de Cliente: ");
-        
-        // paso de unidades a comprar
-        int[] Cantidades = new int[CantidadList.size()];
-        Cantidades = CantidadList.stream().mapToInt(i->i).toArray();
-        CantidadList.clear();
-        
-        int[] pindex = new int[SelectionsList.size()];
-        pindex = SelectionsList.stream().mapToInt(i->i).toArray();
-        SelectionsList.clear();
-
-        Facturacion(Cantidades, pindex, ClientName);
-        return 0;
+                do
+                {
+                    try
+                    {
+                        Cantidad = Integer.parseInt(JOptionPane.showInputDialog("UNIDADES A COMPRAR").toString());
+                        System.out.println("Indice de P(x): " + x + "  Cantidades Disponibles: " + P.Stock[x]);
+                        if(Cantidad > P.Stock[x])
+                        {
+                            JOptionPane.showMessageDialog(null, "NO SE TIENE LA CANTIDAD DE PRODUCTO SOLICITADA (" + Cantidad + ")\n UNIDADES DISPONIBLES (" + P.Stock[x] + ")", "ERROR DE STOCK", JOptionPane.INFORMATION_MESSAGE);
+                        } 
+                        else 
+                        {
+                            System.out.println("Unidades Disponibles");
+                            break;
+                        }
+                    }
+                    catch(Exception err)
+                    {
+                        JOptionPane.showMessageDialog(null, "NO SE PUDO LEER EL DATO INGRESADO\n\n\nINTENTE DE NUEVO...", "ERROR DE ENTRADA/SALIDA", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+                while(true);
+                CantidadList.add(Cantidad);
+                System.out.println("Producto Selecionado: " + SelectedProduct + " (" + Cantidad + ")");
+            }
+        }
+        while(true);
     }
     
     static public void Facturacion(int[] Cantidad, int[] Productos, String Nombre)
     {
         String Lista = "";
         double Subtotal = 0, ITBMS, Total = 0, Cambio=0, Efectivo = 0;
-       
-        
         
         for(x = 0; x < Cantidad.length; x++)
         {
@@ -242,12 +262,14 @@ public class Methods
         ITBMS = Subtotal*0.07;
         Total = Subtotal+ITBMS;
         
-        JOptionPane.showMessageDialog(null, "\n" + Lista + "\nSUBTOTAL:         "+fr.format(Subtotal)+"\nITBMS:         "+fr.format(ITBMS)+"\n\nTOTAL:      "+fr.format(Total),  "FACTURACION", JOptionPane.OK_OPTION);
         do
         {
             try
             {
-                String respuesta = JOptionPane.showInputDialog(null,"\nVendedor: "+ ArgID +"\nCliente: "+ Nombre + "\n\nTOTAL A PAGAR:          "+Total+"\nEFECTIVO","CAJA",JOptionPane.INFORMATION_MESSAGE);
+                String respuesta = JOptionPane.showInputDialog(null,
+                "\nVendedor: "+ ArgID +"\nCliente: "+ Nombre + "\n-------------------------------------------\n" + Lista + "\n----------------------------------------\nSUBTOTAL:         " + fr.format(Subtotal)+"\nITBMS:         " + fr.format(ITBMS)+ "TOTAL A PAGAR:          " + fr.format(Total) + "\n--------------------------------------\nEFECTIVO:",
+                "CAJA",
+                JOptionPane.INFORMATION_MESSAGE);
                 Efectivo = Double.parseDouble(respuesta);
                 break;
             }
@@ -314,8 +336,7 @@ public class Methods
     
     static void inversiones()
     {
-        String inver = JOptionPane.showInputDialog("Ingrese la inversion del mes");
-        Double inversion, ganancias;
+        String inver = JOptionPane.showInputDialog("INVERSION PARA EL MES");
         inversion = Double.parseDouble(inver);                
         ganancias = inversion - ventaMes;
         JOptionPane.showMessageDialog(null, "GANANCIAS DEL MES: " + ganancias);
@@ -324,15 +345,18 @@ public class Methods
     // 1 para imprimir todo el inventario 2 para imprimir los productos bajos de stock y 3 para adquirir nuevos productos
     static void Inventario()
     {
-        int x,opc,Uni,option;
-        String c,choi;
         String BajoStock = "";
+        int x = 0, opc = 0, Uni = 0, option = 0;
+        String c = "";
+        boolean exit = false;
 
         do
         {
             //muestra lista de productos
-            System.out.print("\n1) Mostrar Inventario\n2) mostrar productos con bajas unidades\n3) ingresar unidades a inventario\n----------------------------------------\n-> ");
+            System.out.print("\n1) Mostrar Inventario\n2) mostrar productos con bajas unidades\n3) ingresar unidades a inventario\n0) salir del sistema\n----------------------------------------\n-> ");
             option = R.ReadInt();
+
+            // selects option, if 0 exits from function
             switch(option)
             {
                 case 1:
@@ -374,11 +398,17 @@ public class Methods
                     }
                     while(c.toLowerCase().equals("yes"));
                     break;
+                case 0:
+                    // exits inventory
+                    System.out.println("Saliendo del sistema...");
+                    exit = true;
+                    break;
+                default:
+                    // iterates again because unknown option
+                    System.out.println("OPCION NO VALIDA (" + option + ")");
+                    break;
             }
-            System.out.print("\nDesea Continuar? (YES/NO): ");
-            choi = R.ReadStr();
-            System.out.println("Seleccion : " + choi);
         }
-        while(choi.toLowerCase().equals("yes"));
+        while(!exit);
     }
 }

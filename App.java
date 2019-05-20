@@ -52,13 +52,24 @@ public class App
                 {
                     do
                     {
-                        if((Methods.DiasTotales % 8) == 0)
+                        if((Methods.DiasTotales % 8) == 0 && (Methods.inversion != 0))
                         {
-                            Methods.inversiones();
+                            while(true)
+                            {
+                                if(Methods.inversion == 0)
+                                {
+                                    Methods.inversiones();
+                                }
+                                else
+                                {
+                                    JOptionPane.showMessageDialog(null, "LA INVERSION NO PUEDE SER 0!", "ERROR", JOptionPane.ERROR_MESSAGE);
+                                }
+                                break;
+                            }
                         }
                         ActController = Methods.Ventas();
                     }
-                    while(ActController != -1 && ActController != 0 || ActController == -2);
+                    while(ActController == 1);
                 }
                 else if(SelectedOpt == 2)
                 {
