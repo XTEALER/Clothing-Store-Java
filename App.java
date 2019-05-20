@@ -52,7 +52,7 @@ public class App
                 {
                     do
                     {
-                        if((Methods.DiasTotales % 8) == 0 && (Methods.inversion != 0))
+                        if((Methods.DiasTotales % 8) == 0 && (Methods.inversion == 0))
                         {
                             while(true)
                             {

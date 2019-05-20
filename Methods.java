@@ -13,7 +13,7 @@ public class Methods
     static double ventaDia = 0, ventaSemana = 0, ventaMes = 0, VentasTotales = 0.00, inversion = 0.00, ganancias = 0.00;
     static int x = 0, Cant = 0, Dias = 0, DiasTotales = 0;
     static String cliente, desc, art, ArgID, ArgPass;
-    //static int[] Pindex = new int[] {0,7,8,14,15,21,22,30,31,37};
+
     // Verifica datos del usuario y de existir en el registro retorna true
     static private boolean Users(String ID, String Pass) 
     {
@@ -142,11 +142,14 @@ public class Methods
             
             if(Depart == 5)
             {
-                // terminar compra
-                System.out.println("Saliendo De Seccion: Departamentos");
-
                 //pregunta nombre de cliente
                 ClientName = JOptionPane.showInputDialog("Nombre de Cliente: ");
+                System.out.println("Selection " + ClientName);
+
+                if(ClientName == null)
+                {
+                    JOptionPane.showConfirmDialog(null, "CONTINUAR SIN NOMBRE DE CLIENTE?", "ADVERTENCIA", JOptionPane.OK_CANCEL_OPTION);
+                }
                 
                 // paso de unidades a comprar
                 int[] Cantidades = new int[CantidadList.size()];
@@ -249,8 +252,10 @@ public class Methods
     
     static public void Facturacion(int[] Cantidad, int[] Productos, String Nombre)
     {
-        String Lista = "";
+
         double Subtotal = 0, ITBMS, Total = 0, Cambio=0, Efectivo = 0;
+        String Lista = "";
+        int option = 0;
         
         for(x = 0; x < Cantidad.length; x++)
         {
@@ -266,11 +271,32 @@ public class Methods
         {
             try
             {
-                String respuesta = JOptionPane.showInputDialog(null,
-                "\nVendedor: "+ ArgID +"\nCliente: "+ Nombre + "\n-------------------------------------------\n" + Lista + "\n----------------------------------------\nSUBTOTAL:         " + fr.format(Subtotal)+"\nITBMS:         " + fr.format(ITBMS)+ "TOTAL A PAGAR:          " + fr.format(Total) + "\n--------------------------------------\nEFECTIVO:",
-                "CAJA",
-                JOptionPane.INFORMATION_MESSAGE);
-                Efectivo = Double.parseDouble(respuesta);
+                    String respuesta = JOptionPane.showInputDialog(null,
+                    "\nVendedor: "+ ArgID +"\nCliente: "+ Nombre + "\n-------------------------------------------\n" + Lista + "\n-------------------------------------------\nSUBTOTAL:         " + fr.format(Subtotal)+"\nITBMS:         " + fr.format(ITBMS)+ "\nTOTAL A PAGAR:          " + fr.format(Total) + "\n-------------------------------------------\nEFECTIVO:",
+                    "CAJA",
+                    JOptionPane.INFORMATION_MESSAGE);
+                    if(respuesta == null)
+                    {
+                        JOptionPane.showMessageDialog(null, "COMPRA CANCELADA :'(", "CAJA", JOptionPane.OK_OPTION);
+                        return;
+                    }
+
+                    Efectivo = Double.parseDouble(respuesta);
+
+                    if(Efectivo >= Total)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        option = JOptionPane.showConfirmDialog(null, "No se puede procesar el pago...\nCancelar Compra?", "ERROR", JOptionPane.OK_CANCEL_OPTION);
+                        if(option == 0 || option == -1)
+                        {
+                            JOptionPane.showMessageDialog(null, "COMPRA CANCELADA :'(", "CAJA", JOptionPane.OK_OPTION);
+                            return;
+                        }
+                    }
+                
                 break;
             }
             catch(Exception e)
@@ -295,12 +321,7 @@ public class Methods
     }
     
     static public void stock(double Total, boolean Enday)
-    {   
-        //double Inversion = 0;
-        // System.out.println("Ingrese La Inversion Para El Mes: ");
-        // Inversion = R.ReadDouble();
-        double ganancias = 0;
-        
+    {
         if(Enday)
         {
             Dias++;
@@ -312,6 +333,7 @@ public class Methods
         ventaSemana += Total;
         ventaMes += Total;
         VentasTotales += Total;
+        ganancias = ventaMes - inversion;
 
         if(DiasTotales%8 != 0 && Enday)
         {
@@ -330,64 +352,90 @@ public class Methods
         else if(Enday)
         {
             // reinicia las ventas del mes
+            JOptionPane.showMessageDialog(null, "GANANCIAS DEL MES: " + ganancias);
             ventaMes = 0.00;
+            inversion = 0;
         }
     }
     
     static void inversiones()
     {
-        String inver = JOptionPane.showInputDialog("INVERSION PARA EL MES");
-        inversion = Double.parseDouble(inver);                
-        ganancias = inversion - ventaMes;
-        JOptionPane.showMessageDialog(null, "GANANCIAS DEL MES: " + ganancias);
+        while(true)
+        {
+            String inver = JOptionPane.showInputDialog("INVERSION PARA EL MES");
+            inversion = Double.parseDouble(inver);
+            if(inversion != 0)
+            {
+                break;
+            }       
+        }
     }
 
     // 1 para imprimir todo el inventario 2 para imprimir los productos bajos de stock y 3 para adquirir nuevos productos
     static void Inventario()
     {
-        String BajoStock = "";
         int x = 0, opc = 0, Uni = 0, option = 0;
-        String c = "";
+        String BajoStock = "", c = "";
         boolean exit = false;
 
         do
         {
             //muestra lista de productos
-            System.out.print("\n1) Mostrar Inventario\n2) mostrar productos con bajas unidades\n3) ingresar unidades a inventario\n0) salir del sistema\n----------------------------------------\n-> ");
+            System.out.print("\n1) Ver inventario (completo)\n2) Ver inventario (solo bajo de stock)\n3) Restock de inventario\n0) Volver a panel de control\n----------------------------------------\n-> ");
             option = R.ReadInt();
 
             // selects option, if 0 exits from function
             switch(option)
             {
                 case 1:
-                    System.out.println("\n------------------------\n|    Inventario Dia  " + DiasTotales + "  |\n------------------------");
-                    for(x = 0; x < 37; x++)
+                    // inventory impresion
+                    System.out.println("\n------------------------\n|    Inventario Dia  " + DiasTotales + " |\n------------------------");
+                    for(x = 0; x < 38; x++)
                     {
-                        System.out.println("*Codigo: " + P.Codigo[x] + " ~~ Nombre: " + P.Nombre[x] + " ~~ Cantidad: " + P.Stock[x]);
+                        if(P.Stock[x] > 3)
+                        {
+                            System.out.println("[OK] Codigo: " + P.Codigo[x] + " ++ Nombre: " + P.Nombre[x] + " ++ Cantidad: " + P.Stock[x]);
+                        }
+                        else
+                        {
+                            System.out.println("**[BAJO] Codigo: " + P.Codigo[x] + " ++ Nombre: " + P.Nombre[x] + " ++ Cantidad: " + P.Stock[x]);
+                        }
                     }
                     break;
                 case 2:
-                    for(x = 0; x < 37; x++)
+                    // add products to stock
+                    for(x = 0; x < 38; x++)
                     {
-                        if (P.Stock[x] <= 3)
+                        if(P.Stock[x] <= 3)
                         {
-                            BajoStock += "Codigo: " + P.Codigo[x] + " ~~ Nombre: " + P.Nombre[x] + " ~~ Cantidad: " + P.Stock[x];
+                            BajoStock += "\n**[BAJO] Codigo: " + P.Codigo[x] + " ++ Nombre: " + P.Nombre[x] + " ++ Cantidad: " + P.Stock[x];
                         }
                     }
-
                     // imprime productos en stock con menos de 4 unidades
                     if(BajoStock != null)
                     {
-                        System.out.println("STOCK BAJO\n-----------------" + BajoStock);
+                        System.out.println("\n------------------\n|   STOCK BAJO   |\n------------------" + BajoStock);
                     }
                     break;
                 case 3:
                     //insercion de unidades a los productos
                     do
                     {
-                        System.out.println("-----ELIJA CODIGO DE PRODUTO------");
-                        opc = R.ReadInt();
-                        opc -= 100;
+                        System.out.println("-------ELIJA CODIGO DE PRODUTO-------\n|            (100 - 137)            |\n-------------------------------------");
+                        do
+                        {
+                            opc = R.ReadInt();
+                            if(opc > 99 && opc < 138)
+                            {
+                                opc -= 100;
+                                break;
+                            }
+                            else
+                            {
+                                System.out.println("CODIGO FUERA DE RANGO (" + opc + ")");
+                            }
+                        }
+                        while(true);
                         System.out.println("PRODUCTO ELEJIDO: \n" + P.Nombre[opc] + " [" + P.Stock[opc] + "]");
                         System.out.println("\nCUANTOS UNIDADES DESEA AGREGAR");
                         Uni = R.ReadInt();
@@ -400,7 +448,7 @@ public class Methods
                     break;
                 case 0:
                     // exits inventory
-                    System.out.println("Saliendo del sistema...");
+                    System.out.println("Saliendo...");
                     exit = true;
                     break;
                 default:
