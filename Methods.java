@@ -54,11 +54,17 @@ public class Methods
     static public int vendedor()
     {
         JPanel MainPanel = new JPanel();
-        JTextField Pass = new JTextField(5);
+        JPasswordField Pass = new JPasswordField();
         JTextField ID = new JTextField(10);
         boolean check = false;
         int ToReturn = 0;
-        // se jodio algo con el audio de mi laptop y si hablamos por discord?
+
+        // character to show
+        Pass.setEchoChar('*');
+
+        // set the width of the field to allow space for 12 characters
+        Pass.setColumns(12);
+
         MainPanel.setLayout(new BoxLayout(MainPanel,BoxLayout.PAGE_AXIS));
         MainPanel.add(new JSeparator(JSeparator.VERTICAL));
         MainPanel.add(Box.createVerticalStrut(15));
@@ -69,14 +75,12 @@ public class Methods
         MainPanel.add(Box.createVerticalStrut(15));
         
         int option = JOptionPane.showConfirmDialog(null, 
-        MainPanel, 
+        MainPanel,
         "Inicio de Sesion", 
         JOptionPane.OK_CANCEL_OPTION);
 
         ArgID = ID.getText().toUpperCase();
-        ArgPass = Pass.getText();
-
-        System.out.println("Opcion: " + option);
+        ArgPass = String.valueOf(Pass.getPassword());
 
         // si se selecionan las opciones cancelar o cerrar se vuelve al menu de cerrar programa
         if(option == -1 || option == 2) 
@@ -140,7 +144,7 @@ public class Methods
                     return -1;
             }
             
-            if(Depart == 5)
+            if(Depart == 5 && SelectionsList.size() != 0)
             {
                 //pregunta nombre de cliente
                 ClientName = JOptionPane.showInputDialog("Nombre de Cliente: ");
@@ -164,12 +168,7 @@ public class Methods
                 Facturacion(Cantidades, pindex, ClientName);
                 return 1;
             }
-            else if(Depart == 6)
-            {
-                // ends program
-                return 0;
-            }
-            else
+            else if(Depart != 6)
             {
                 // add selections to list
                 for(y = Range[0]; y < Range[1]; y++)
@@ -246,6 +245,11 @@ public class Methods
                 CantidadList.add(Cantidad);
                 System.out.println("Producto Selecionado: " + SelectedProduct + " (" + Cantidad + ")");
             }
+            else
+            {
+                // ends program
+                return 0;
+            }
         }
         while(true);
     }
@@ -254,12 +258,22 @@ public class Methods
     {
 
         double Subtotal = 0, ITBMS, Total = 0, Cambio=0, Efectivo = 0;
-        String Lista = "";
+        String Lista = "", ProAdd = "";
         int option = 0;
         
+        Lista += "\nCodigo:          Producto:           Cantidad:           Precio:     \n";
         for(x = 0; x < Cantidad.length; x++)
         {
-            Lista += ("\nCodigo:          Producto:           Cantidad:           Precio:     \n" + P.Codigo[Productos[x]]+"             "+ P.Nombre[Productos[x]]+"            "+ Cantidad[x]+"              " +P.Precio[Productos[x]]+"      ");
+            Lista += ("\n " + P.Codigo[Productos[x]]  + "                ");
+            ProAdd += P.Nombre[Productos[x]];
+
+            while(ProAdd.length() < 23)
+            {
+                ProAdd += " ";
+            }
+
+            Lista += (ProAdd + Cantidad[x] + "                      " + P.Precio[Productos[x]] + "      ");
+            ProAdd = "";
             Subtotal += Cantidad[x] * P.Precio[Productos[x]];
             P.Stock[Productos[x]] -= Cantidad[x];
             System.out.println(Lista);
@@ -272,32 +286,32 @@ public class Methods
             try
             {
                     String respuesta = JOptionPane.showInputDialog(null,
-                    "\nVendedor: "+ ArgID +"\nCliente: "+ Nombre + "\n-------------------------------------------\n" + Lista + "\n-------------------------------------------\nSUBTOTAL:         " + fr.format(Subtotal)+"\nITBMS:         " + fr.format(ITBMS)+ "\nTOTAL A PAGAR:          " + fr.format(Total) + "\n-------------------------------------------\nEFECTIVO:",
+                    "\nVendedor: "+ ArgID +"\nCliente: "+ Nombre + "\n-------------------------------------------\n" + Lista + "\n-------------------------------------------\nSUBTOTAL:                " + fr.format(Subtotal)+"\nITBMS:                       " + fr.format(ITBMS)+ "\nTOTAL A PAGAR:       " + fr.format(Total) + "\n-------------------------------------------\nEFECTIVO:",
                     "CAJA",
                     JOptionPane.INFORMATION_MESSAGE);
-                    if(respuesta == null)
+                    
+                    if(respuesta != null)
                     {
-                        JOptionPane.showMessageDialog(null, "COMPRA CANCELADA :'(", "CAJA", JOptionPane.OK_OPTION);
-                        return;
-                    }
-
-                    Efectivo = Double.parseDouble(respuesta);
-
-                    if(Efectivo >= Total)
-                    {
-                        break;
+                        Efectivo = Double.parseDouble(respuesta);
+                        if(Efectivo >= Total)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            JOptionPane.showMessageDialog(null, "NO SE PUEDE PROCESAR LA COMPRA...", "CAJA", JOptionPane.OK_OPTION);
+                            continue;
+                        }
                     }
                     else
                     {
-                        option = JOptionPane.showConfirmDialog(null, "No se puede procesar el pago...\nCancelar Compra?", "ERROR", JOptionPane.OK_CANCEL_OPTION);
+                        option = JOptionPane.showConfirmDialog(null, "CANCELAR COMPRA", "ERROR", JOptionPane.OK_CANCEL_OPTION);
                         if(option == 0 || option == -1)
                         {
                             JOptionPane.showMessageDialog(null, "COMPRA CANCELADA :'(", "CAJA", JOptionPane.OK_OPTION);
                             return;
                         }
                     }
-                
-                break;
             }
             catch(Exception e)
             {
@@ -315,7 +329,7 @@ public class Methods
         Cambio = (double) Efectivo - Total;
 
         System.out.println("Compra Terminada!");
-        JOptionPane.showMessageDialog(null, "\nVendedor: "+ ArgID +"\nCliente: "+ Nombre +"\n\n\n"+ Lista + "\n\n\nSUBTOTAL:       "+fr.format(Subtotal)+"\nITBMS:         "+fr.format(ITBMS)+"\nTOTAL:        "+fr.format(Total)+"\n\n EFECTIVO:        "+fr.format(Efectivo)+"\n\nCAMBIO:         " +fr.format(Cambio),  "FACTURA", JOptionPane.OK_OPTION);
+        JOptionPane.showMessageDialog(null, "\nVendedor: "+ ArgID +"\nCliente: "+ Nombre + "\n-------------------------------------------\n" + Lista + "\n-------------------------------------------\nSUBTOTAL:                " + fr.format(Subtotal)+"\nITBMS:                       " + fr.format(ITBMS)+ "\nTOTAL A PAGAR:       " + fr.format(Total) + "\n-------------------------------------------\nEFECTIVO:            "+fr.format(Efectivo)+"\nCAMBIO:               " +fr.format(Cambio),  "FACTURA", JOptionPane.OK_OPTION);
         
         stock(Total, false);
     }
@@ -394,11 +408,11 @@ public class Methods
                     {
                         if(P.Stock[x] > 3)
                         {
-                            System.out.println("[OK] Codigo: " + P.Codigo[x] + " ++ Nombre: " + P.Nombre[x] + " ++ Cantidad: " + P.Stock[x]);
+                            System.out.println("[OK] Codigo: " + P.Codigo[x] + " ~~ Nombre: " + P.Nombre[x] + " ++ Cantidad: " + P.Stock[x]);
                         }
                         else
                         {
-                            System.out.println("**[BAJO] Codigo: " + P.Codigo[x] + " ++ Nombre: " + P.Nombre[x] + " ++ Cantidad: " + P.Stock[x]);
+                            System.out.println("**[BAJO] Codigo: " + P.Codigo[x] + " ~~ Nombre: " + P.Nombre[x] + " ++ Cantidad: " + P.Stock[x]);
                         }
                     }
                     break;
